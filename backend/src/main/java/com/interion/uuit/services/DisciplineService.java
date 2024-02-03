@@ -1,14 +1,15 @@
 package com.interion.uuit.services;
 
-import com.interion.uuit.dto.DisciplineJsonRequest;
-import com.interion.uuit.dto.DisciplineJsonResponse;
+import com.interion.uuit.dto.DisciplineJson;
+import com.interion.uuit.dto.StudentSummaryJson;
 import com.interion.uuit.entities.Discipline;
 import com.interion.uuit.entities.Student;
 import com.interion.uuit.exceptions.DisciplineClosedException;
 import com.interion.uuit.exceptions.FullCapaticyException;
 import com.interion.uuit.exceptions.NotFoundException;
 import com.interion.uuit.exceptions.StudentAlreadyRegisteredException;
-import com.interion.uuit.mapper.DisciplineMapper;
+import com.interion.uuit.mapper.DisciplineFactory;
+import com.interion.uuit.mapper.StudentFactory;
 import com.interion.uuit.repositories.DisciplineRepository;
 import com.interion.uuit.repositories.StudentRepository;
 import lombok.AllArgsConstructor;
@@ -16,29 +17,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 @Slf4j
-public class DisciplineService implements CrudService<DisciplineJsonRequest, DisciplineJsonResponse> {
+public class DisciplineService implements CrudService<DisciplineJson> {
 
     private final DisciplineRepository repository;
     private final StudentRepository studentRepository;
-    private final DisciplineMapper mapper;
+    private final DisciplineFactory disciplineFactory;
+    private final StudentFactory studentFactory;
 
     @Override
-    public DisciplineJsonResponse insert(DisciplineJsonRequest request) {
-        var discipline = repository.save(mapper.from(request));
+    public DisciplineJson insert(DisciplineJson request) {
+        var discipline = repository.save(disciplineFactory.from(request));
         log.info("Disciplne {} saved", discipline);
-        return mapper.from(discipline);
+        return disciplineFactory.from(discipline);
     }
 
     @Override
-    public void update(String id, DisciplineJsonRequest request) {
+    public void update(String id, DisciplineJson request) {
         var discipline = this.findDisciplineOrThrow(id);
 
         discipline.setName(request.name());
@@ -47,6 +49,7 @@ public class DisciplineService implements CrudService<DisciplineJsonRequest, Dis
         discipline.setCapacity(request.capacity());
         discipline.setTotal(request.total());
         discipline.setOpen(request.open());
+        discipline.setUpdateDate(LocalDateTime.now());
 
         repository.save(discipline);
         log.info("Discipline {} updated", discipline);
@@ -55,49 +58,52 @@ public class DisciplineService implements CrudService<DisciplineJsonRequest, Dis
     public void addStudentIntoDiscipline(String disciplineId, String studentId) {
         var discipline = this.findDisciplineOrThrow(disciplineId);
         var student = this.findStudentOrThrow(studentId);
+        var studentSummary = studentFactory.studentSummary(student);
 
-        this.checkValidations(discipline, student);
+        this.checkValidations(discipline, studentSummary);
 
-        discipline.addStudent(student);
+        discipline.addStudent(studentSummary);
         discipline.setTotal(discipline.getStudents().size());
+        discipline.setUpdateDate(LocalDateTime.now());
         repository.save(discipline);
+        log.info("Student {} added into discipline {}", studentSummary.name(), discipline.getName());
     }
 
-    private void checkValidations(Discipline discipline, Student student) {
+    private void checkValidations(Discipline discipline, StudentSummaryJson student) {
         if (discipline.getStudents().contains(student)) {
-            log.warn("Student {} already registered in discipline {}", student.getName(), discipline.getName());
-            throw new StudentAlreadyRegisteredException("Student already registered");
+            log.warn("Student {} already registered in discipline {}", student.name(), discipline.getName());
+            throw new StudentAlreadyRegisteredException();
         }
 
-        if (discipline.isOpen()) {
+        if (!discipline.isOpen()) {
             log.warn("Discipline {} is closed", discipline.getName());
-            throw new DisciplineClosedException("Discipline is no longer available");
+            throw new DisciplineClosedException();
         }
 
         if (discipline.getStudents().size() == discipline.getCapacity()) {
             log.warn("Discipline full capacity of {}", discipline.getTotal());
-            throw new FullCapaticyException("This discipline is already at maximum capacity");
+            throw new FullCapaticyException();
         }
     }
 
     private Student findStudentOrThrow(String id) {
         var objId = new ObjectId(id);
 
-        return studentRepository.findById(objId).orElseThrow( () -> {
+        return studentRepository.findById(objId).orElseThrow(() -> {
             log.warn("Student {} not found", objId);
             throw new NotFoundException("Not Found");
         });
     }
 
     @Override
-    public DisciplineJsonResponse findById(String id) {
-       var discipline = this.findDisciplineOrThrow(id);
-       log.info("Discipline found: {}", discipline);
-       return mapper.from(discipline);
+    public DisciplineJson findById(String id) {
+        var discipline = this.findDisciplineOrThrow(id);
+        log.info("Discipline found: {}", discipline);
+        return disciplineFactory.from(discipline);
     }
 
     @Override
-    public List<DisciplineJsonResponse> findAll() {
+    public List<DisciplineJson> findAll() {
         var disciplines = repository.findAll();
 
         if (disciplines.isEmpty()) {
@@ -105,11 +111,11 @@ public class DisciplineService implements CrudService<DisciplineJsonRequest, Dis
         }
 
         log.info("List of disciplines return correctly");
-        return mapper.from(disciplines);
+        return disciplineFactory.from(disciplines);
     }
 
     @Override
-    public Page<DisciplineJsonResponse> findAll(Pageable pageable) {
+    public Page<DisciplineJson> findAll(Pageable pageable) {
         Page<Discipline> disciplinesPage = repository.findAll(pageable);
 
         if (disciplinesPage.isEmpty()) {
@@ -117,7 +123,7 @@ public class DisciplineService implements CrudService<DisciplineJsonRequest, Dis
         }
 
         log.info("Page of disciplines returned correctly");
-        return disciplinesPage.map(mapper::from);
+        return disciplinesPage.map(disciplineFactory::from);
     }
 
     @Override
@@ -130,10 +136,9 @@ public class DisciplineService implements CrudService<DisciplineJsonRequest, Dis
     private Discipline findDisciplineOrThrow(String id) {
         var objId = new ObjectId(id);
 
-        return repository.findById(objId).orElseThrow( () -> {
+        return repository.findById(objId).orElseThrow(() -> {
             log.warn("Discipline {} not found", id);
             throw new NotFoundException("Not Found");
-
         });
     }
 }
