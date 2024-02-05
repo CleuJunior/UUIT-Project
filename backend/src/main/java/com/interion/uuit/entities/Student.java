@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
 import java.util.Objects;
 
 @Document("Student")
@@ -15,19 +14,27 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Student extends BaseMongoEntity{
+public class Student extends BaseMongoEntity {
 
-    private String name;
+    private String firstName;
     private String lastName;
     private String email;
     private String registration;
-    private List<Discipline> disciplines;
 
-    public Student(String name, String lastName, String email, String registration) {
-        this.name = name;
+    private Student(ObjectId id, String firstName, String lastName, String email, String registration) {
+        super(id);
+        this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.registration = registration;
+    }
+
+    public static Student of(ObjectId id, String name, String lastName, String email, String registration)  {
+        return new Student(id, name, lastName, email, registration);
+    }
+
+    public static Student of(String name, String lastName, String email, String registration)  {
+        return new Student(name, lastName, email, registration);
     }
 
     @Override
