@@ -1,14 +1,15 @@
 package com.interion.uuit.config;
 
+import com.interion.uuit.repositories.UserRepository;
+import com.interion.uuit.security.TokenSecurityService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.token.TokenService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -19,70 +20,30 @@ import java.io.IOException;
  * If the user is authenticated, the security context is updated with the user's details.
  */
 @Component
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SecurityFilter.class);
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
-    private final TokenService tokenService;
-    private final UserRepository userRepository;
-
-    /**
-     * Constructs a new instance of the SecurityFilter class.
-     *
-     * @param tokenService The token service used to validate and retrieve user details from the access token.
-     * @param userRepository The user repository used to retrieve user details from the database.
-     */
-    public SecurityFilter(TokenService tokenService, UserRepository userRepository) {
-        this.tokenService = tokenService;
-        this.userRepository = userRepository;
-    }
-
-    /**
-     * This method is responsible for validating the user's access token and authenticating the user. If the user is
-     * authenticated, the security context is updated with the user's details.
-     *
-     * @param request The HTTP request object.
-     * @param response The HTTP response object.
-     * @param filterChain The filter chain.
-     * @throws ServletException If an error occurs during the filter processing.
-     * @throws IOException If an I/O error occurs.
-     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        var token = recoverToken(request);
+        final var authHeader = request.getHeader("Authorization");
 
-        if (token != null) {
-
-            var login = tokenService.validateToken(token);
-
-            var user = userRepository.findByUsername(login)
-                    .orElseThrow(() -> {
-                        LOG.warn(USERNAME_FOUND, login);
-                        return new NotFoundException(USERNAME_NOT_FOUND);
-                    });
-
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        filterChain.doFilter(request, response);
-    }
+        final var jwt = authHeader.substring(7);
+        final var userEmail = jwtService.extractUsername(jwt);
 
-    /**
-     * This method retrieves the access token from the HTTP request headers.
-     *
-     * @param request The HTTP request object.
-     * @return The access token, or null if it is not present in the request headers.
-     */
-    private String recoverToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null) {
-            return null;
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            var user = this.userDetailsService.loadbyUsername(userEmail);
         }
 
-        return authHeader.replace("Bearer ", "");
     }
 }
