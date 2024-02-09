@@ -4,3 +4,8 @@ spring:
       host: localhost
       port: 27017
       database: uuit
+
+api:
+  security:
+    token:
+      secret: "seu_valor_do_token_aqui"
