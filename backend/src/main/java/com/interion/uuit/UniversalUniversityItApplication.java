@@ -1,9 +1,12 @@
 package com.interion.uuit;
 
 import com.interion.uuit.entities.Attendant;
+import com.interion.uuit.entities.User;
+import com.interion.uuit.enums.Role;
 import com.interion.uuit.repositories.AttendantRepository;
 import com.interion.uuit.repositories.DisciplineRepository;
 import com.interion.uuit.repositories.StudentRepository;
+import com.interion.uuit.repositories.UserRepository;
 import com.interion.uuit.services.DisciplineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -36,9 +39,24 @@ public class UniversalUniversityItApplication implements CommandLineRunner {
 	@Autowired
 	PasswordEncoder passwordEncoder;
 
+	@Autowired
+	UserRepository repositoryUser;
+
 
 	@Override
 	public void run(String... args) {
+		var password = "12345678";
+		var user = User.builder()
+				.firstName("fernando")
+				.lastName("fernadis")
+				.email("fernan@gmail.com")
+				.role(Role.ADMIN)
+				.password(passwordEncoder.encode(password))
+				.build();
+
+		repositoryUser.save(user);
+
+
 
 //		var password = passwordEncoder.encode("13855");
 //		var password2 = passwordEncoder.encode("13855");

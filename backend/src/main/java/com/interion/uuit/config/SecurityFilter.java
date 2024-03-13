@@ -15,6 +15,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * This class implements a security filter that is responsible for validating the user's access token and authenticating the user.
  * If the user is authenticated, the security context is updated with the user's details.
@@ -41,8 +44,9 @@ public class SecurityFilter extends OncePerRequestFilter {
         final var jwt = authHeader.substring(7);
         final var userEmail = jwtService.extractUsername(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (nonNull(userEmail) && isNull(SecurityContextHolder.getContext().getAuthentication())) {
             var user = this.userDetailsService.loadUserByUsername(userEmail);
+
             if (jwtService.isTokenValid(jwt, user)) {
                 var authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

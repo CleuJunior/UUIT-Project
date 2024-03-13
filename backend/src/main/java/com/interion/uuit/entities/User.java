@@ -1,8 +1,8 @@
 package com.interion.uuit.entities;
 
-import com.fasterxml.jackson.databind.annotation.EnumNaming;
 import com.interion.uuit.enums.Role;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,13 +13,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 
 import static java.util.Collections.singleton;
 
 @Document("User")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Getter @Setter
 public class User extends BaseMongoEntity implements UserDetails {
 
