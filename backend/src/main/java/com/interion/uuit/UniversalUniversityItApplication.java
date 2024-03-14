@@ -45,16 +45,16 @@ public class UniversalUniversityItApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		var password = "12345678";
-		var user = User.builder()
-				.firstName("fernando")
-				.lastName("fernadis")
-				.email("fernan@gmail.com")
-				.role(Role.ADMIN)
-				.password(passwordEncoder.encode(password))
-				.build();
-
-		repositoryUser.save(user);
+//		var password = "12345678";
+//		var user = User.builder()
+//				.firstName("fernando")
+//				.lastName("fernadis")
+//				.email("fernan@gmail.com")
+//				.role(Role.ADMIN)
+//				.password(passwordEncoder.encode(password))
+//				.build();
+//
+//		repositoryUser.save(user);
 
 
 

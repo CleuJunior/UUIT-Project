@@ -34,15 +34,22 @@ public class SecurityFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        final var authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (request.getServletPath().contains("/api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final var jwt = authHeader.substring(7);
-        final var userEmail = jwtService.extractUsername(jwt);
+        final var authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String userEmail;
+
+        if (isNull(authHeader) || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        jwt = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(jwt);
 
         if (nonNull(userEmail) && isNull(SecurityContextHolder.getContext().getAuthentication())) {
             var user = this.userDetailsService.loadUserByUsername(userEmail);
