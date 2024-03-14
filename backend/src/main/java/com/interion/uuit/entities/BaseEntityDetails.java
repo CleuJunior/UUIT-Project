@@ -1,6 +1,7 @@
 package com.interion.uuit.entities;
 
 import com.interion.uuit.enums.Role;
+import com.interion.uuit.enums.Role2;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,7 +23,7 @@ public abstract class BaseEntityDetails implements UserDetails {
     protected String email;
     protected String registration;
     protected String password;
-    protected Set<Role> roles = new HashSet<>();
+    protected Set<Role2> roles = new HashSet<>();
     @CreatedDate
     protected LocalDateTime creationDate;
     @LastModifiedDate

@@ -12,9 +12,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.beans.Transient;
 import java.util.Collection;
+import java.util.List;
 
+import static com.interion.uuit.enums.Role.ADMIN;
 import static java.util.Collections.singleton;
+import static java.util.List.of;
 
 @Document("User")
 @NoArgsConstructor
@@ -29,18 +33,24 @@ public class User extends BaseMongoEntity implements UserDetails {
     private String password;
     private Role role;
 
-    public User(ObjectId id, String firstName, String lastName, String email, String password) {
+    public User(ObjectId id, String firstName, String lastName, String email, String password, Role role) {
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
-    @Override
+    @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return singleton(new SimpleGrantedAuthority(role.name()));
+        if(this.role == ADMIN) {
+            return of(new SimpleGrantedAuthority("ADMIN"),
+                    new SimpleGrantedAuthority("USER"));
+        }
+        else return singleton(new SimpleGrantedAuthority("USER"));
     }
+
 
     @Override
     public String getPassword() {

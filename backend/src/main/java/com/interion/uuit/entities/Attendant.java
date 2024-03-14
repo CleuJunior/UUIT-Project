@@ -1,6 +1,7 @@
 package com.interion.uuit.entities;
 
 import com.interion.uuit.enums.Role;
+import com.interion.uuit.enums.Role2;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -25,16 +26,16 @@ public class Attendant extends BaseEntityDetails {
         super(email, registration, password);
         this.firtName = firtName;
         this.lastName = lastName;
-        super.roles.add(Role.ADMIN);
-        super.roles.add(Role.USER);
+        super.roles.add(Role2.ADMIN);
+        super.roles.add(Role2.USER);
     }
 
     public Attendant(String firtName, String lastName, ObjectId id, String email, String registration, String password) {
         super(id, email, registration, password);
         this.firtName = firtName;
         this.lastName = lastName;
-        super.roles.add(Role.ADMIN);
-        super.roles.add(Role.USER);
+        super.roles.add(Role2.ADMIN);
+        super.roles.add(Role2.USER);
     }
 
     @Override

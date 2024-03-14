@@ -1,5 +1,6 @@
 package com.interion.uuit.config;
 
+import com.interion.uuit.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -27,40 +29,30 @@ import static java.util.Objects.nonNull;
 public class SecurityFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
-
+    private final UserRepository userRepository;
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if (request.getServletPath().contains("/api/v1/auth")) {
-            filterChain.doFilter(request, response);
-            return;
+        var token = this.recoverToken(request);
+        if(token != null){
+            var login = jwtService.validateToken(token);
+            var user = userRepository.findByEmail(login).orElseThrow();
+
+            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        final var authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        filterChain.doFilter(request, response);
+    }
 
-        if (isNull(authHeader) || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    private String recoverToken(HttpServletRequest request){
+        var authHeader = request.getHeader("Authorization");
 
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
+        if(isNull(authHeader))
+            return null;
 
-        if (nonNull(userEmail) && isNull(SecurityContextHolder.getContext().getAuthentication())) {
-            var user = this.userDetailsService.loadUserByUsername(userEmail);
-
-            if (jwtService.isTokenValid(jwt, user)) {
-                var authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        }
-        filterChain.doFilter(request,response);
-
+        return authHeader.replace("Bearer ", "");
     }
 }
