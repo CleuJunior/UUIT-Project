@@ -2,6 +2,7 @@ package com.interion.uuit.security;
 
 import com.interion.uuit.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,7 +16,9 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByEmail(username).orElseThrow();
+        var user =  this.repository.findByEmail(username);
+
+        return new User(user.getUsername(), user.getPassword(), user.getAuthorities());
     }
 
 }

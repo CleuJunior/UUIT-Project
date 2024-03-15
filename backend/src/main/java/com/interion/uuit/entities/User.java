@@ -14,9 +14,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.beans.Transient;
 import java.util.Collection;
-import java.util.List;
 
 import static com.interion.uuit.enums.Role.ADMIN;
+import static com.interion.uuit.enums.Role.USER;
 import static java.util.Collections.singleton;
 import static java.util.List.of;
 
@@ -42,19 +42,18 @@ public class User extends BaseMongoEntity implements UserDetails {
         this.role = role;
     }
 
-    @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(this.role == ADMIN) {
-            return of(new SimpleGrantedAuthority("ADMIN"),
-                    new SimpleGrantedAuthority("USER"));
+            return of(new SimpleGrantedAuthority(ADMIN.getName()),
+                    new SimpleGrantedAuthority(USER.name()));
         }
-        else return singleton(new SimpleGrantedAuthority("USER"));
+        else return singleton(new SimpleGrantedAuthority(USER.name()));
     }
 
 
     @Override
     public String getPassword() {
-        return null;
+        return password;
     }
 
     @Override
