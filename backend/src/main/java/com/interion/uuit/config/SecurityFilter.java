@@ -9,9 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,16 +25,18 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final TokenService tokenService;
     private final UserRepository userRepository;
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         var token = this.recoverToken(request);
-        if(token != null){
-            var login = jwtService.validateToken(token);
+
+        if (nonNull(token)) {
+            var login = tokenService.validateToken(token);
             var user = userRepository.findByEmail(login).orElseThrow();
 
             var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
@@ -47,10 +46,10 @@ public class SecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String recoverToken(HttpServletRequest request){
+    private String recoverToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
 
-        if(isNull(authHeader))
+        if (isNull(authHeader))
             return null;
 
         return authHeader.replace("Bearer ", "");
