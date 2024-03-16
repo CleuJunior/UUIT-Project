@@ -12,7 +12,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.beans.Transient;
 import java.util.Collection;
 
 import static com.interion.uuit.enums.Role.ADMIN;
@@ -24,7 +23,8 @@ import static java.util.List.of;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter @Setter
+@Getter
+@Setter
 public class User extends BaseMongoEntity implements UserDetails {
 
     private String firstName;
@@ -43,11 +43,10 @@ public class User extends BaseMongoEntity implements UserDetails {
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role == ADMIN) {
+        if (this.role == ADMIN) {
             return of(new SimpleGrantedAuthority(ADMIN.getName()),
                     new SimpleGrantedAuthority(USER.name()));
-        }
-        else return singleton(new SimpleGrantedAuthority(USER.name()));
+        } else return singleton(new SimpleGrantedAuthority(USER.name()));
     }
 
 
