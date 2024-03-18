@@ -1,6 +1,6 @@
 package com.interion.uuit.mapper;
 
-import com.interion.uuit.dto.StudentJson;
+import com.interion.uuit.dto.StudentRequest;
 import com.interion.uuit.dto.StudentSummaryJson;
 import com.interion.uuit.entities.Student;
 import org.springframework.data.domain.Page;
@@ -8,15 +8,22 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static java.lang.String.format;
+
 @Component
 public class StudentFactory {
 
-    public Student from(StudentJson json) {
-        return Student.of(json.firstName(), json.lastName(), json.email(),json.registration());
+    public Student from(StudentRequest json) {
+        return Student.builder()
+                .firstName(json.firstName())
+                .lastName( json.lastName())
+                .email(json.email())
+                .registration(json.registration())
+                .build();
     }
 
-    public StudentJson from(Student student) {
-        return new StudentJson(
+    public StudentRequest from(Student student) {
+        return new StudentRequest(
                 student.getId().toString(),
                 student.getFirstName(),
                 student.getLastName(),
@@ -25,26 +32,27 @@ public class StudentFactory {
         );
     }
 
-    public List<StudentJson> from(List<Student> students) {
+    public List<StudentRequest> from(List<Student> students) {
         return students
                 .stream()
                 .map(this::from)
                 .toList();
     }
 
-    public Page<StudentJson> from(Page<Student> students) {
+    public Page<StudentRequest> from(Page<Student> students) {
         return students.map(this::from);
     }
 
 
     public StudentSummaryJson studentSummary(Student student) {
-        var fullName = String.format("%s %s", student.getFirstName(), student.getLastName());
+        var fullName = format("%s %s", student.getFirstName(), student.getLastName());
 
         return new StudentSummaryJson(
                 student.getId().toString(),
                 fullName,
                 student.getEmail(),
-                student.getRegistration()
+                student.getRegistration(),
+                student.getUserId()
         );
     }
 

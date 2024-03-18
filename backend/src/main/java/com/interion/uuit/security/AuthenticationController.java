@@ -32,14 +32,14 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<Token> register(@RequestBody RegisterRequest request) {
-        if (nonNull(this.repository.findByEmail(request.email()))) {
+        if (nonNull(this.repository.username(request.email()))) {
             return ResponseEntity.badRequest().build();
         }
 
         var encryptedPassword = encoder.encode(request.password());
         var newUser = com.interion.uuit.entities.User
                 .builder()
-                .email(request.email())
+                .username(request.email())
                 .password(encryptedPassword)
                 .role(Role.ADMIN)
                 .build();

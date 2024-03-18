@@ -1,6 +1,6 @@
 package com.interion.uuit.resources;
 
-import com.interion.uuit.dto.StudentJson;
+import com.interion.uuit.dto.StudentRequest;
 import com.interion.uuit.services.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,12 +30,12 @@ public class StudentController {
     private final StudentService service;
 
     @GetMapping
-    public ResponseEntity<List<StudentJson>> listOfStudents() {
+    public ResponseEntity<List<StudentRequest>> listOfStudents() {
         return ResponseEntity.ok(this.service.findAll());
     }
 
     @GetMapping(params = {"page", "size", "sort"})
-    public ResponseEntity<Page<StudentJson>> listOfStudentsPage(
+    public ResponseEntity<Page<StudentRequest>> listOfStudentsPage(
             @RequestParam(value = "page", required = false) int page,
             @RequestParam(value = "size", required = false) int size,
             @RequestParam(value = "sort", required = false) String sort
@@ -45,12 +45,12 @@ public class StudentController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<StudentJson> getStudentById(@PathVariable String id) {
+    public ResponseEntity<StudentRequest> getStudentById(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.service.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<StudentJson> saveStudent(@Valid @RequestBody StudentJson request) {
+    public ResponseEntity<StudentRequest> saveStudent(@Valid @RequestBody StudentRequest request) {
         var response = this.service.insert(request);
 
         var uri = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -62,7 +62,7 @@ public class StudentController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<Void> updateStudent(@PathVariable String id, @Valid @RequestBody StudentJson request) {
+    public ResponseEntity<Void> updateStudent(@PathVariable String id, @Valid @RequestBody StudentRequest request) {
         this.service.update(id, request);
         return ResponseEntity.ok().build();
     }

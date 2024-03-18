@@ -1,6 +1,7 @@
 package com.interion.uuit.entities;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,29 +13,23 @@ import java.util.Objects;
 @Document("Student")
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
+@Builder
+@Getter @Setter
 public class Student extends BaseMongoEntity {
 
     private String firstName;
     private String lastName;
     private String email;
     private String registration;
+    private String userId;
 
-    private Student(ObjectId id, String firstName, String lastName, String email, String registration) {
+    public Student(ObjectId id, String firstName, String lastName, String email, String registration, String userId) {
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.registration = registration;
-    }
-
-    public static Student of(ObjectId id, String name, String lastName, String email, String registration)  {
-        return new Student(id, name, lastName, email, registration);
-    }
-
-    public static Student of(String name, String lastName, String email, String registration)  {
-        return new Student(name, lastName, email, registration);
+        this.userId = userId;
     }
 
     @Override

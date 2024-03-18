@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @JsonPropertyOrder({"id"})
-public record StudentJson(
+public record StudentResponse(
         String id,
         @NotNull(message = "{bean.validation.field.null}")
         @NotBlank(message = "{bean.validation.field.blank}")

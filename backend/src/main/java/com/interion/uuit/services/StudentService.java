@@ -1,43 +1,49 @@
 package com.interion.uuit.services;
 
-import com.interion.uuit.dto.DisciplineJson;
-import com.interion.uuit.dto.StudentJson;
-import com.interion.uuit.dto.StudentSummaryJson;
-import com.interion.uuit.entities.Discipline;
+import com.interion.uuit.dto.StudentRequest;
 import com.interion.uuit.entities.Student;
-import com.interion.uuit.exceptions.DisciplineClosedException;
-import com.interion.uuit.exceptions.FullCapaticyException;
+import com.interion.uuit.entities.User;
 import com.interion.uuit.exceptions.NotFoundException;
-import com.interion.uuit.exceptions.StudentAlreadyRegisteredException;
 import com.interion.uuit.mapper.StudentFactory;
 import com.interion.uuit.repositories.StudentRepository;
+import com.interion.uuit.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.interion.uuit.enums.Role.STUDENT;
+
 @Service
 @AllArgsConstructor
 @Slf4j
-public class StudentService implements CrudService<StudentJson> {
+public class StudentService implements CrudService<StudentRequest> {
 
     private final StudentRepository repository;
     private final StudentFactory studentFactory;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public StudentJson insert(StudentJson request) {
+    public StudentRequest insert(StudentRequest request) {
+        var passwordEncoded = passwordEncoder.encode(request.password());
+        var user = new User(request.email(), passwordEncoded,  STUDENT);
+        userRepository.save(user);
+
         var student = repository.save(studentFactory.from(request));
+
         log.info("Student {} saved", student);
         return studentFactory.from(student);
     }
 
     @Override
-    public void update(String id, StudentJson request) {
+    public void update(String id, StudentRequest request) {
         var student = this.findStudentOrThrow(id);
 
         student.setFirstName(request.firstName());
@@ -51,14 +57,14 @@ public class StudentService implements CrudService<StudentJson> {
     }
 
     @Override
-    public StudentJson findById(String id) {
+    public StudentRequest findById(String id) {
         var discipline = this.findStudentOrThrow(id);
         log.info("Student found: {}", discipline);
         return studentFactory.from(discipline);
     }
 
     @Override
-    public List<StudentJson> findAll() {
+    public List<StudentRequest> findAll() {
         var students = repository.findAll();
 
         if (students.isEmpty()) {
@@ -70,7 +76,7 @@ public class StudentService implements CrudService<StudentJson> {
     }
 
     @Override
-    public Page<StudentJson> findAll(Pageable pageable) {
+    public Page<StudentRequest> findAll(Pageable pageable) {
         Page<Student> studentPage = repository.findAll(pageable);
 
         if (studentPage.isEmpty()) {
