@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,82 +23,88 @@ import static com.interion.uuit.enums.Role.STUDENT;
 
 @Service
 @AllArgsConstructor
+@Transactional
 @Slf4j
-public class StudentService implements CrudService<StudentRequest> {
+public class StudentService implements CrudService<Student> {
 
-    private final StudentRepository repository;
+    private final StudentRepository studentRepository;
     private final StudentFactory studentFactory;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public StudentRequest insert(StudentRequest request) {
-        var passwordEncoded = passwordEncoder.encode(request.password());
-        var user = new User(request.email(), passwordEncoded,  STUDENT);
-        userRepository.save(user);
+    public Student insert(Student request) {
+        var student = studentRepository.save(request);
+//        var passwordEncoded = passwordEncoder.encode(studentS.password());
+//        var user = new User<>(studentS, studentS.getEmail(), passwordEncoded, STUDENT);
 
-        var student = repository.save(studentFactory.from(request));
+//        userRepository.save(user);
 
         log.info("Student {} saved", student);
-        return studentFactory.from(student);
+        return student;
+
+//        return studentFactory.from(studentS);
     }
 
     @Override
-    public void update(String id, StudentRequest request) {
+    public void update(String id, Student request) {
         var student = this.findStudentOrThrow(id);
 
-        student.setFirstName(request.firstName());
-        student.setLastName(request.lastName());
-        student.setEmail(request.email());
-        student.setRegistration(request.registration());
+        student.setFirstName(request.getFirstName());
+        student.setLastName(request.getLastName());
+        student.setEmail(request.getEmail());
+        student.setRegistration(request.getRegistration());
         student.setUpdateDate(LocalDateTime.now());
 
-        repository.save(student);
+        studentRepository.save(student);
         log.info("Student {} updated", student);
     }
 
     @Override
-    public StudentRequest findById(String id) {
-        var discipline = this.findStudentOrThrow(id);
-        log.info("Student found: {}", discipline);
-        return studentFactory.from(discipline);
+    public Student findById(String id) {
+        var student = this.findStudentOrThrow(id);
+        log.info("Student found: {}", student);
+//        return studentFactory.from(discipline);
+        return student;
     }
 
     @Override
-    public List<StudentRequest> findAll() {
-        var students = repository.findAll();
+    public List<Student> findAll() {
+        var students = studentRepository.findAll();
 
         if (students.isEmpty()) {
             log.warn("List of students is empty");
         }
 
         log.info("List of students return correctly");
-        return studentFactory.from(students);
+//        return studentFactory.from(students);
+        return students;
     }
 
     @Override
-    public Page<StudentRequest> findAll(Pageable pageable) {
-        Page<Student> studentPage = repository.findAll(pageable);
+    public Page<Student> findAll(Pageable pageable) {
+        var studentPage = studentRepository.findAll(pageable);
 
         if (studentPage.isEmpty()) {
             log.warn("Page of students is empty");
         }
 
         log.info("Page of students returned correctly");
-        return studentFactory.from(studentPage);
+        return studentPage;
+//        return studentFactory.from(studentPage);
     }
 
     @Override
     public void delete(String id) {
         var student = this.findStudentOrThrow(id);
-        repository.delete(student);
+        studentRepository.delete(student);
         log.info("Student {} deleted", student);
     }
 
     private Student findStudentOrThrow(String id) {
         var objId = new ObjectId(id);
 
-        return repository.findById(objId).orElseThrow(() -> {
+        return studentRepository.findById(objId).orElseThrow(() -> {
             log.warn("Student {} not found", id);
             throw new NotFoundException("Not Found");
         });

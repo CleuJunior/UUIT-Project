@@ -42,8 +42,7 @@ public class DisciplineFactory {
                 student.getId().toString(),
                 fullName,
                 student.getEmail(),
-                student.getRegistration()
-        );
+                student.getRegistration());
     }
 
     public List<DisciplineJson> from(List<Discipline> disciplines) {

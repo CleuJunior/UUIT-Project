@@ -13,12 +13,12 @@ import static java.lang.String.format;
 @Component
 public class StudentFactory {
 
-    public Student from(StudentRequest json) {
+    public Student from(StudentRequest request) {
         return Student.builder()
-                .firstName(json.firstName())
-                .lastName( json.lastName())
-                .email(json.email())
-                .registration(json.registration())
+                .firstName(request.firstName())
+                .lastName( request.lastName())
+                .email(request.email())
+                .registration(request.registration())
                 .build();
     }
 
@@ -28,6 +28,7 @@ public class StudentFactory {
                 student.getFirstName(),
                 student.getLastName(),
                 student.getEmail(),
+                "[PROTECTED]",
                 student.getRegistration()
         );
     }
@@ -43,7 +44,6 @@ public class StudentFactory {
         return students.map(this::from);
     }
 
-
     public StudentSummaryJson studentSummary(Student student) {
         var fullName = format("%s %s", student.getFirstName(), student.getLastName());
 
@@ -51,8 +51,7 @@ public class StudentFactory {
                 student.getId().toString(),
                 fullName,
                 student.getEmail(),
-                student.getRegistration(),
-                student.getUserId()
+                student.getRegistration()
         );
     }
 

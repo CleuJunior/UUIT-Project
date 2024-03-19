@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 @Document("Student")
@@ -15,21 +18,20 @@ import java.util.Objects;
 @AllArgsConstructor
 @Builder
 @Getter @Setter
-public class Student extends BaseMongoEntity {
+public class Student extends BaseMongoEntity implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 2L;
     private String firstName;
     private String lastName;
     private String email;
     private String registration;
-    private String userId;
-
-    public Student(ObjectId id, String firstName, String lastName, String email, String registration, String userId) {
+    public Student(ObjectId id, String firstName, String lastName, String email, String registration) {
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.registration = registration;
-        this.userId = userId;
     }
 
     @Override

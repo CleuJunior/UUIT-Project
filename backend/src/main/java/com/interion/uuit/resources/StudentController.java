@@ -1,6 +1,7 @@
 package com.interion.uuit.resources;
 
 import com.interion.uuit.dto.StudentRequest;
+import com.interion.uuit.mapper.StudentFactory;
 import com.interion.uuit.services.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService service;
+    private final StudentFactory studentFactory;
 
     @GetMapping
     public ResponseEntity<List<StudentRequest>> listOfStudents() {
